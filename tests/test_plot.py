@@ -79,6 +79,7 @@ def test_pair_plot_continuous_hue():
     fig = plot.pair_plot(df["x"], df["y"], df["hue"])
     assert isinstance(fig, Figure)
 
+
 ### TESTS triplet_plot ###
 
 def test_triplet_plot_no_hue():

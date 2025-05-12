@@ -18,49 +18,49 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 #===== GENERAL FUNCTIONS =====# 
 
+def one_hot_warning(df, cols, threshold):
+
+    warning_cols_names = []
+    warning_cols_length = []
+
+    for col in cols:
+
+        n = len(df[col].unique())
+        if n > threshold:
+            warning_cols_names.append(col)
+            warning_cols_length.append(n)
+    
+    return warning_cols_names, warning_cols_length
+
 
 def get_df_encoded(df, to_label_cols, to_one_hot_cols): 
 
+    mappings = {}
+
+    # Label encoding
     for col in to_label_cols: 
         le = LabelEncoder()
         df[col] = le.fit_transform(df[col].astype(str))
+        col1 = col+"_original"
+        col2 = col+"_encoded"
+        mappings[col1] = list(le.classes_)
+        mappings[col2] =  list(le.transform(le.classes_))
 
+    # Mapping for label encoding 
+    if len(to_label_cols) > 0:
+        max_len = max(len(v) for v in mappings.values())
+        for k, v in mappings.items():
+            if len(v) < max_len:
+                padding = [None] * (max_len - len(v))  
+                mappings[k] += padding
+        mappings = pd.DataFrame(mappings)
+
+    # One-hot encoding
     for col in to_one_hot_cols: 
         df = pd.get_dummies(df, columns=[col], drop_first=True)
+    
 
-    return df
-
-
-# Split data and run model according to the value of split
-def run_model(df, target, features, model_type, split):
-
-    # Splitting data 
-    X = df[features].dropna()
-    y = df[target].dropna()
-    X, y = X.align(y, join='inner', axis=0)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=split)
-
-    if model_type == "OLS":
-        
-        res, fig, rmse, mae = run_OLS(target, X_train, X_test, y_train, y_test)
-
-    elif model_type == "Lasso":
-        
-        res, fig, rmse, mae = run_lasso(target, features, X_train, X_test, y_train, y_test)
-
-    elif model_type == "Ridge":
-        
-        res, fig, rmse, mae = run_ridge(target, X_train, X_test, y_train, y_test)
-
-    elif model_type == "Random Forest":
-        
-        res, fig, rmse, mae = run_rf(target, X_train, X_test, y_train, y_test)
-
-    elif model_type == "XGBoost":
-         
-        res, fig, rmse, mae = run_xgb(target, features, X_train, X_test, y_train, y_test)
-
-    return res, fig, rmse, mae
+    return df, mappings
 
 
 # Plot y_pred against y_test
@@ -104,10 +104,42 @@ def plot_pred(target, y_test, y_pred):
     return fig, rmse
 
 
+# Split data and run model according to the value of split
+def run_model(df, target, features, model_type, split):
+
+    # Splitting data 
+    X = df[features].dropna()
+    y = df[target].dropna()
+    X, y = X.align(y, join='inner', axis=0)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=split)
+
+    if model_type == "OLS":
+        
+        res, fig, rmse, mae = run_ols(target, X_train, X_test, y_train, y_test)
+
+    elif model_type == "Lasso":
+        
+        res, fig, rmse, mae = run_lasso(target, features, X_train, X_test, y_train, y_test)
+
+    elif model_type == "Ridge":
+        
+        res, fig, rmse, mae = run_ridge(target, X_train, X_test, y_train, y_test)
+
+    elif model_type == "Random Forest":
+        
+        res, fig, rmse, mae = run_rf(target, X_train, X_test, y_train, y_test)
+
+    elif model_type == "XGBoost":
+         
+        res, fig, rmse, mae = run_xgb(target, features, X_train, X_test, y_train, y_test)
+
+    return res, fig, rmse, mae
+
+
 
 #===== MODELS TRAINING =====#
 
-def run_OLS(target, X_train, X_test, y_train, y_test):
+def run_ols(target, X_train, X_test, y_train, y_test):
 
     # Model training
     X_train_const = sm.add_constant(X_train)
