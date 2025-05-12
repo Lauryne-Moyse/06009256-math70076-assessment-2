@@ -10,22 +10,32 @@ from sklearn.ensemble import RandomForestRegressor
 import statsmodels.api as sm
 import xgboost as xgb
 
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-
 
 
 #===== GENERAL FUNCTIONS =====# 
 
 def one_hot_warning(df, cols, threshold):
+    """
+    Identifies column with high dimensionality for one-hot encoding
+
+    Parameters:
+        df (pd.DataFrame): input dataset
+        cols (list): columns to one-hot encode
+        threshold (int): limit value for low dimensionality
+
+    Returns:
+        list: high-dimensionality columns 
+        list: dimensions of identified at risk columns 
+    """
 
     warning_cols_names = []
     warning_cols_length = []
 
     for col in cols:
 
-        n = len(df[col].unique())
+        n = df[col].nunique()
         if n > threshold:
             warning_cols_names.append(col)
             warning_cols_length.append(n)
@@ -33,7 +43,19 @@ def one_hot_warning(df, cols, threshold):
     return warning_cols_names, warning_cols_length
 
 
-def get_df_encoded(df, to_label_cols, to_one_hot_cols): 
+def get_df_encoded(df, to_label_cols, to_one_hot_cols):   
+    """
+    Identifies column with high dimensionality for one-hot encoding
+
+    Parameters:
+        df (pd.DataFrame): input dataset
+        to_label_cols (list): columns to label encode
+        to_one_hot_cols (int): columns to one-hot encode
+
+    Returns:
+        pd.DataFrame: updated df with encoded variables
+        list: original-new values mapping for label encoding
+    """
 
     mappings = {}
 
@@ -41,14 +63,15 @@ def get_df_encoded(df, to_label_cols, to_one_hot_cols):
     for col in to_label_cols: 
         le = LabelEncoder()
         df[col] = le.fit_transform(df[col].astype(str))
+        # Mapping of the encoding 
         col1 = col+"_original"
         col2 = col+"_encoded"
         mappings[col1] = list(le.classes_)
         mappings[col2] =  list(le.transform(le.classes_))
 
-    # Mapping for label encoding 
     if len(to_label_cols) > 0:
         max_len = max(len(v) for v in mappings.values())
+        # Make all the columns the same length
         for k, v in mappings.items():
             if len(v) < max_len:
                 padding = [None] * (max_len - len(v))  
@@ -59,12 +82,23 @@ def get_df_encoded(df, to_label_cols, to_one_hot_cols):
     for col in to_one_hot_cols: 
         df = pd.get_dummies(df, columns=[col], drop_first=True)
     
-
     return df, mappings
 
 
 # Plot y_pred against y_test
 def plot_pred(target, y_test, y_pred):
+    """
+   Generates scatter plot of predicted against original values
+
+    Parameters:
+        target (str): name of target variable 
+        y_test (np.array): original test values
+        y_pred (np.array): predicted test values
+
+    Returns:
+        ploty.graph_objects.Figure: generated plot
+        float: root mean squared error of the prediction
+    """
 
     rmse = mean_squared_error(y_test, y_pred, squared=False)
     
@@ -76,8 +110,8 @@ def plot_pred(target, y_test, y_pred):
     fig = go.Figure()
 
     fig.add_trace(go.Scatter(
-        x=df_plot["x"],
-        y=df_plot["y"],
+        x=y_test,
+        y=y_pred,
         mode='markers',
         marker=dict(color='steelblue')
     ))
@@ -106,8 +140,24 @@ def plot_pred(target, y_test, y_pred):
 
 # Split data and run model according to the value of split
 def run_model(df, target, features, model_type, split):
+    """
+    Split data and run model as specified
 
-    # Splitting data 
+    Parameters:
+        df (pd.Dataframe): input dataset
+        target (str): name of regressive variable
+        features (list): names of explanatory variables
+        model_type (str): machine learning model
+        split (float): percentage of train_size
+
+    Returns:
+        str or statsmodels.iolib.summary.Summary or plt.Figure: summary of the model
+        ploty.graph_objects.Figure:  scatter plot of predicted against original values
+        float: rmse of the prediction
+        float: mae of the prediction 
+    """
+
+    # Split data 
     X = df[features].dropna()
     y = df[target].dropna()
     X, y = X.align(y, join='inner', axis=0)
@@ -131,7 +181,7 @@ def run_model(df, target, features, model_type, split):
 
     elif model_type == "XGBoost":
          
-        res, fig, rmse, mae = run_xgb(target, features, X_train, X_test, y_train, y_test)
+        res, fig, rmse, mae = run_xgb(target, X_train, X_test, y_train, y_test)
 
     return res, fig, rmse, mae
 
@@ -140,6 +190,22 @@ def run_model(df, target, features, model_type, split):
 #===== MODELS TRAINING =====#
 
 def run_ols(target, X_train, X_test, y_train, y_test):
+    """
+    Fit an OLS regression
+
+    Parameters:
+        target (str): name of regressive variable 
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        statsmodels.iolib.summary.Summary: summary of the model
+        ploty.graph_objects.Figure:  scatter plot of predicted against original values
+        float: rmse of the prediction
+        float: mae of the prediction 
+    """
 
     # Model training
     X_train_const = sm.add_constant(X_train)
@@ -159,6 +225,23 @@ def run_ols(target, X_train, X_test, y_train, y_test):
 
 
 def run_lasso(target, features, X_train, X_test, y_train, y_test):
+    """
+    Fit a Lasso regression
+
+    Parameters:
+        target (str): name of regressive variable 
+        features (list): names of explanatory variables 
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        str: summary of the model
+        ploty.graph_objects.Figure:  scatter plot of predicted against original values
+        float: rmse of the prediction
+        float: mae of the prediction 
+    """
 
     # Model training
     model = Lasso()
@@ -186,6 +269,22 @@ def run_lasso(target, features, X_train, X_test, y_train, y_test):
 
 
 def run_ridge(target, X_train, X_test, y_train, y_test):
+    """
+    Fit a Ridge regression
+
+    Parameters:
+        target (str): name of regressive variable 
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        str: summary of the model
+        ploty.graph_objects.Figure:  scatter plot of predicted against original values
+        float: rmse of the prediction
+        float: mae of the prediction 
+    """
 
     # Model training
     model = Ridge()
@@ -209,6 +308,22 @@ def run_ridge(target, X_train, X_test, y_train, y_test):
 
 
 def run_rf(target, X_train, X_test, y_train, y_test):
+    """
+    Fit a random forest regression
+
+    Parameters:
+        target (str): name of regressive variable 
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        str: summary of the model
+        ploty.graph_objects.Figure:  scatter plot of predicted against original values
+        float: rmse of the prediction
+        float: mae of the prediction 
+    """
 
     # Model training
     model = RandomForestRegressor()
@@ -232,7 +347,23 @@ def run_rf(target, X_train, X_test, y_train, y_test):
     return summary, fig, rmse, mae
 
 
-def run_xgb(target, features, X_train, X_test, y_train, y_test):
+def run_xgb(target, X_train, X_test, y_train, y_test):
+    """
+    Fit an XGBoost regression 
+
+    Parameters:
+        target (str): name of regressive variable 
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        plt.Figure: plot of the model's metrics 
+        ploty.graph_objects.Figure:  scatter plot of predicted against original values
+        float: rmse of the prediction
+        float: mae of the prediction 
+    """
 
     # Model training
     model = xgb.XGBRegressor()
@@ -244,13 +375,21 @@ def run_xgb(target, features, X_train, X_test, y_train, y_test):
     fig, rmse = plot_pred(target, y_test, y_pred)
 
     # Metrics plots 
-    metrics_plots = plot_metrics_xgb(features, model.get_booster())
-
+    metrics_plots = plot_metrics_xgb(model.get_booster())
 
     return metrics_plots, fig, rmse, mae
 
 
-def plot_metrics_xgb(features, booster):
+def plot_metrics_xgb(booster):
+    """
+    Generate a plot of XGBoost model metrics 
+
+    Parameters:
+        booster (xgb.core.Booster): parameters of XGBoost model 
+
+    Returns:
+        plt.Figure: plots of main trained features of XGBoost model 
+    """
 
     fig, ax = plt.subplots(1, 3, figsize=(20, 6))
 

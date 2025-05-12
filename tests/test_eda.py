@@ -24,14 +24,16 @@ def test_corr_heatmap():
 
 def test_analyse_column_numeric():
     s = pd.Series([1, None, 3, None, 5], name="num_col")
-    result = eda.analyse_column(s)
+    result = eda.analyse_column(s, "continuous")
     assert result["dtype"] == s.dtype
     assert result["missing"] == 2
     assert isinstance(result["skewness"], float)
 
 def test_analyse_column_categorical():
     s = pd.Series(["a", "b", "a", "c"], name="cat_col")
-    result = eda.analyse_column(s)
+    result = eda.analyse_column(s, "categorical")
+    assert result["dtype"] == s.dtype
+    assert result["missing"] == 0
     assert result["skewness"] is None
 
 
@@ -39,10 +41,10 @@ def test_analyse_column_categorical():
 
 def test_plot_column_numeric():
     s = pd.Series([1, 2, 3, 4], name="plot_num")
-    fig = eda.plot_column(s)
+    fig = eda.plot_column(s, "continuous")
     assert isinstance(fig, plt.Figure)
 
 def test_plot_column_categorical():
     s = pd.Series(["A", "B", "A", "C"], name="plot_cat")
-    fig = eda.plot_column(s)
+    fig = eda.plot_column(s, "categorical")
     assert isinstance(fig, plt.Figure)

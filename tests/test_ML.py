@@ -6,6 +6,10 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_regression
 from plotly.graph_objects import Figure
+from statsmodels.iolib.summary import Summary
+
+import warnings
+warnings.filterwarnings("ignore")
 
 import sys
 import os
@@ -13,8 +17,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 import ML
 
 
-
-### TESTS one_hot_warning ###
+### TEST one_hot_warning ###
 
 def test_one_hot_warning():
     df_test = pd.DataFrame({
@@ -28,7 +31,7 @@ def test_one_hot_warning():
     assert warning_cols_length[0] == 3  
 
 
-### TESTS get_df_encoded ###
+### TEST get_df_encoded ###
 
 def test_get_df_encoded(): 
     df_test = pd.DataFrame({
@@ -90,7 +93,6 @@ def test_run_model():
     assert isinstance(result, tuple)
     assert len(result) == 4
     summary, fig, rmse, mae = result
-    assert hasattr(summary, "as_text") or isinstance(summary, str)
     assert isinstance(fig, Figure)
     assert isinstance(rmse, float)
     assert isinstance(mae, float)
@@ -101,7 +103,7 @@ def test_run_model():
 ### TEST run_ols ###
 
 def test_run_ols():
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.1, random_state=42)
+    X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
     target = "target"
@@ -112,6 +114,7 @@ def test_run_ols():
     summary, fig, rmse, mae = ML.run_ols(
         target, X_train, X_test, y_train, y_test
     )
+    assert isinstance(summary, Summary)
     assert isinstance(fig, Figure)
     assert isinstance(rmse, float)
     assert isinstance(mae, float)
@@ -122,7 +125,7 @@ def test_run_ols():
 ### TEST run_lasso ###
 
 def test_run_lasso():
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.1, random_state=42)
+    X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
     target = "target"
@@ -144,7 +147,7 @@ def test_run_lasso():
 ### TEST run_ridge ###
 
 def test_run_ridge():
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.1, random_state=42)
+    X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
     target = "target"
@@ -166,7 +169,7 @@ def test_run_ridge():
 ### TEST run_rf ###
 
 def test_run_rf():
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.1, random_state=42)
+    X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
     target = "target"
@@ -188,7 +191,7 @@ def test_run_rf():
 ### TEST run_xgb ###
 
 def test_run_xgb():
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.1, random_state=42)
+    X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
     target = "target"
@@ -197,7 +200,7 @@ def test_run_xgb():
         df[features], df[target], test_size=0.2, random_state=1
     )
     metrics_plots, fig, rmse, mae = ML.run_xgb(
-        target, features, X_train, X_test, y_train, y_test
+        target, X_train, X_test, y_train, y_test
     )
     assert isinstance(metrics_plots, plt.Figure)
     assert isinstance(fig, Figure)
@@ -210,7 +213,7 @@ def test_run_xgb():
 ### TEST plot_metrics_xgb ###
 
 def test_plot_metrics_xgb():
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.1, random_state=42)
+    X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
     target = "target"
@@ -221,5 +224,5 @@ def test_plot_metrics_xgb():
     model = xgb.XGBRegressor()
     model.fit(X_train, y_train)
     booster = model.get_booster()
-    fig = ML.plot_metrics_xgb(features, booster)
+    fig = ML.plot_metrics_xgb(booster)
     assert isinstance(fig, plt.Figure)

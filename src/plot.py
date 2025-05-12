@@ -5,6 +5,19 @@ import pandas as pd
 
 
 def plot_chart(df, x, y, z, hue):
+    """
+    Generates a chart according to the specified inputs
+
+    Parameters:
+        df (pd.DataFrame): input dataset
+        x (str): name of first column
+        y (str): name of second column
+        z (str): name of third column
+        hue (str): name of color column
+
+    Returns:
+        plotly.graph_objects.Figure: output chart
+    """
 
     hue_col = df[hue] if hue!="---" is not None else None
 
@@ -20,15 +33,24 @@ def plot_chart(df, x, y, z, hue):
     return fig
 
 
-# Plot a 1-dimensional graph
 def single_plot(x, hue):
+    """
+    Generates a 1-dim scatter plot according to the specified inputs
+
+    Parameters:
+        x (pd.Series): first column
+        hue (pd.Series): color column
+
+    Returns:
+        plotly.graph_objects.Figure: output chart
+    """
 
     name = hue.name if hue is not None else None
 
     df_plot = pd.DataFrame({
         "x": range(len(x)),
         "y":x,
-        "hue": hue if hue is not None else "All"
+        "hue": hue
     })
 
     fig = px.scatter(
@@ -50,15 +72,25 @@ def single_plot(x, hue):
     return fig
 
 
-# Plot a 2-dimensional graph
 def pair_plot(x, y, hue):
+    """
+    Generates a 2-dims scatter plot according to the specified inputs
+
+    Parameters:
+        x (pd.Series): first column
+        y (pd.Series): second column
+        hue (pd.Series): color column
+
+    Returns:
+        plotly.graph_objects.Figure: output chart
+    """
 
     name = hue.name if hue is not None else None
 
     df_plot = pd.DataFrame({
         "x": x,
         "y":y,
-        "hue": hue if hue is not None else "All"
+        "hue": hue
     })
 
     fig = px.scatter(
@@ -80,8 +112,19 @@ def pair_plot(x, y, hue):
     return fig
 
 
-# Plot a 3-dimensional graph
 def triplet_plot(x, y, z, hue):
+    """
+    Generates a 3-dims scatter plot according to the specified inputs
+
+    Parameters:
+        x (pd.Series): first column
+        y (pd.Series): second column
+        z (pd.Series): third column
+        hue (pd.Series): color column
+
+    Returns:
+        plotly.graph_objects.Figure: output chart
+    """
 
     name = hue.name if hue is not None else None
 
@@ -89,7 +132,7 @@ def triplet_plot(x, y, z, hue):
         "x": x,
         "y": y,
         "z": z,
-        "hue": hue if hue is not None else "All"
+        "hue": hue
     })
 
     fig = px.scatter_3d(
@@ -101,15 +144,16 @@ def triplet_plot(x, y, z, hue):
         title="3D Scatter Plot",
     )
 
-    fig.update_traces(marker=dict(size=3))
+    fig.update_traces(marker=dict(size=4))
     fig.update_layout(
         legend_title_text=name,
         scene=dict(
             xaxis_title=x.name,
             yaxis_title=y.name,
             zaxis_title=z.name
-        ),
+            ),
         showlegend=hue is not None
     )
 
     return fig
+
