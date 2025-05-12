@@ -1,7 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-import pytest
 
 import sys
 import os
@@ -9,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 import eda
 
 
-### TESTS corr_heatmap ###
+### TEST corr_heatmap ###
 
 def test_corr_heatmap():
     df = pd.DataFrame({

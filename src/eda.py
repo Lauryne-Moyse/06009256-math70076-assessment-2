@@ -6,35 +6,65 @@ import seaborn as sns
 def corr_heatmap(df):
     
     fig = plt.figure()
-    sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
+    
+    sns.heatmap(
+        df.corr(), 
+        annot=True, 
+        cmap='coolwarm'
+    )
 
     return fig
 
 
-def analyse_column(col): 
-
-    is_num = pd.api.types.is_numeric_dtype(col)
+def analyse_column(col, type): 
 
     summary = {
             "dtype": col.dtype,
             "missing": col.isna().sum(),
-            "skewness": col.skew() if is_num else None,
+            "skewness": col.skew() if type=="continuous" else None
         }
 
     return summary 
 
 
-def plot_column(col):
+def plot_column(col, type):
 
-    is_num = pd.api.types.is_numeric_dtype(col)
 
     fig = plt.figure()
 
-    if is_num:
-        sns.histplot(col.dropna(), kde=True)
+    if type=="continuous":
+
+        fig, ax = plt.subplots()
+
+        sns.histplot(
+            col.dropna(), 
+            bins="fd", 
+            kde=True, 
+            ax=ax, 
+            edgecolor='black'
+        )
+
+        ax.set_title(f"Histogram of {col.name}")
+        ax.set_xlabel(col.name)
+        ax.set_ylabel("Count")
+
     else:
-        col.value_counts().plot(kind="bar")
+        
+        fig, ax = plt.subplots()
     
+        col.value_counts().plot(
+            kind="bar", 
+            ax=ax, 
+            color='lightcoral', 
+            edgecolor='black'
+        )
+        
+        ax.set_title(f"Bar plot of {col.name}")
+        ax.set_xlabel(col.name)
+        ax.set_ylabel("Count")
+    
+        ax.tick_params(axis='x', labelrotation=45, labelsize=8)
+        
     return fig
     
 
