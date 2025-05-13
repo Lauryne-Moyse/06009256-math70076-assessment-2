@@ -22,13 +22,13 @@ This Streamlit application enables users to load, explore, preprocess and model 
 - $ venv\Scripts\activate     # For Windows
 
 2. Install dependencies:
-$ pip install -r requirements.txt
+- $ pip install -r requirements.txt
 
 3. Run unit tests:
-$ pytest test/
+- $ pytest test/
 
 4. Run app:
-$ streamlit run Main_page.py
+- $ streamlit run Main_page.py
 
 5. Load an example dataset '.csv' on main page from 'data/' folder
 
