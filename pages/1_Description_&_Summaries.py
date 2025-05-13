@@ -29,9 +29,9 @@ st.write(df.isna().sum())
 # Data visualization 
 st.markdown(
     """
-    ### Variable Distribution Visualization
+    ### Variables Distribution Visualization
 
-    In this interface, variable distributions are displayed using **histograms** for numerical variables and **bar plots** for categorical ones.
+    In this interface, variables distribution are displayed using **histograms** for numerical variables and **bar plots** for categorical ones.
 
     Sometimes, a numerical variable can meaningfully be treated as **categorical** — for example, a score out of 10, a year, or a binary flag.
     <br> By default, numerical variables with more than **20 unique values** are treated as continuous. Below this threshold, users can choose to visualize them either as a histogram or as a bar plot.
@@ -77,7 +77,7 @@ for col in df.columns:
     fig = eda.plot_column(col_data, type)
     
     st.write("**Type :**", summary["dtype"])
-    st.write("**Valeurs manquantes :**", summary["missing"])
+    st.write("**Missing values :**", summary["missing"])
     if summary["skewness"] is not None:
         st.write("**Skewness :**", round(summary["skewness"], 2))
     st.pyplot(fig)

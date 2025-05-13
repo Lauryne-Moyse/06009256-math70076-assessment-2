@@ -33,7 +33,7 @@ if y!="---":
     z = st.selectbox("Variable Z (optional)", ["---"]+num_cols)
 else:
     z = "---"
-hue = st.selectbox("Variable for coloring(optional)", ["---"]+list(df.columns))
+hue = st.selectbox("Variable for coloring (optional)", ["---"]+list(df.columns))
 
 
 # Trace plots when at least x is specified

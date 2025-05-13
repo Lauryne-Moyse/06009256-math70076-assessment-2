@@ -11,6 +11,7 @@ st.markdown(
     f"""
     In this section, you can **train and compare different machine learning models**, each using default parameters.  
     <br> The goal is to quickly identify which type of model performs best on your dataset.  
+    <br> Regression and classification models are available, choose an appropriate one according to the selected target variable.
 
     You can select the **target variable**, the **explanatory variables**, and the **proportion of data to use for training**.  
     <br> Non-numeric columns can be transformed using either **label encoding or one-hot encoding**.  

@@ -9,7 +9,6 @@ from sklearn.linear_model import Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 import statsmodels.api as sm
 import xgboost as xgb
-
 from sklearn.linear_model import LogisticRegression
 
 from sklearn.model_selection import train_test_split
@@ -444,9 +443,11 @@ def run_logistic(X_train, X_test, y_train, y_test):
 
     Returns:
         str: text summary of performance metrics
-        plotly.graph_objects.Figure: confusion matrix plot
+        plt.Figure: confusion matrix plot
+        float: accuracy score
+        float: precision score
+        float: recall score
         float: F1 score
-        float: Accuracy score
     """
     
     # Model training
@@ -492,9 +493,11 @@ def run_rfc(X_train, X_test, y_train, y_test):
 
     Returns:
         str: text summary of performance metrics
-        plotly.graph_objects.Figure: confusion matrix plot
+        plt.Figure: confusion matrix plot
+        float: accuracy score
+        float: precision score
+        float: recall score
         float: F1 score
-        float: Accuracy score
     """
     
     # Model training
@@ -531,7 +534,6 @@ def run_xgbc(X_train, X_test, y_train, y_test):
     Fit a XGBoost classifier
 
     Parameters:
-        features (list): name of explanatory variables
         X_train (np.array): training set for explanatory variables
         X_test (np.array): test set for explanatory variables
         y_train (np.array): training set for regressive variable
@@ -539,9 +541,11 @@ def run_xgbc(X_train, X_test, y_train, y_test):
 
     Returns:
         str: text summary of performance metrics
-        plotly.graph_objects.Figure: confusion matrix plot
+        tuple: confusion matrix and booster metrics plots
+        float: accuracy score
+        float: precision score
+        float: recall score
         float: F1 score
-        float: Accuracy score
     """
     
     # Model training

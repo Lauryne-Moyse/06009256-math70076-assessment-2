@@ -10,7 +10,7 @@ st.title("WebApp data science - EDA & Machine learning models")
 st.markdown(
     """
     ### Welcome to this data science application!
-    This app allows you to **load a dataset**, **explore**, **plot variables**, and then **train and evaluate various regression models**.
+    This app allows you to **load a dataset**, **explore**, **plot variables**, and then **train and evaluate various machine learning models**.
     <br> Load your dataset on this page and then move to other pages to perform your analysis. 
     <br> The dataset must be loaded as a **CSV file** and contain only **numerical or categorical columns**. 
     """, 
