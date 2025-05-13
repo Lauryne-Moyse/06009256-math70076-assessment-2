@@ -6,12 +6,17 @@ import plotly.graph_objects as go
 from sklearn.preprocessing import LabelEncoder
 
 from sklearn.linear_model import Ridge, Lasso
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 import statsmodels.api as sm
 import xgboost as xgb
 
+from sklearn.linear_model import LogisticRegression
+
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error 
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
 
 
 #===== GENERAL FUNCTIONS =====# 
@@ -139,7 +144,7 @@ def plot_pred(target, y_test, y_pred):
 
 
 # Split data and run model according to the value of split
-def run_model(df, target, features, model_type, split):
+def run_model(df, target, features, model, type, split):
     """
     Split data and run model as specified
 
@@ -163,31 +168,39 @@ def run_model(df, target, features, model_type, split):
     X, y = X.align(y, join='inner', axis=0)
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=split)
 
-    if model_type == "OLS":
-        
-        res, fig, rmse, mae = run_ols(target, X_train, X_test, y_train, y_test)
+    if type == "regression":
+        if model == "OLS":
+            res, fig, rmse, mae = run_ols(target, X_train, X_test, y_train, y_test)
 
-    elif model_type == "Lasso":
-        
-        res, fig, rmse, mae = run_lasso(target, features, X_train, X_test, y_train, y_test)
+        elif model == "Lasso":       
+            res, fig, rmse, mae = run_lasso(target, features, X_train, X_test, y_train, y_test)
 
-    elif model_type == "Ridge":
-        
-        res, fig, rmse, mae = run_ridge(target, X_train, X_test, y_train, y_test)
+        elif model == "Ridge":       
+            res, fig, rmse, mae = run_ridge(target, X_train, X_test, y_train, y_test)
 
-    elif model_type == "Random Forest":
-        
-        res, fig, rmse, mae = run_rf(target, X_train, X_test, y_train, y_test)
+        elif model == "Random-Forest-r":       
+            res, fig, rmse, mae = run_rfr(target, X_train, X_test, y_train, y_test)
 
-    elif model_type == "XGBoost":
-         
-        res, fig, rmse, mae = run_xgb(target, X_train, X_test, y_train, y_test)
+        elif model == "XGBoost-r":       
+            res, fig, rmse, mae = run_xgbr(target, X_train, X_test, y_train, y_test)
 
-    return res, fig, rmse, mae
+        return res, fig, rmse, mae
+    
+    else: 
+        if model == "Logistic":
+            res, fig, acc, prec, rec, f1 = run_logistic(X_train, X_test, y_train, y_test)
+
+        elif model == "Random-Forest-c":        
+            res, fig, acc, prec, rec, f1 = run_rfc(X_train, X_test, y_train, y_test)
+
+        elif model == "XGBoost-c":        
+            res, fig, acc, prec, rec, f1 = run_xgbc(X_train, X_test, y_train, y_test)
+
+        return res, fig, acc, prec, rec, f1
 
 
 
-#===== MODELS TRAINING =====#
+#===== REGRESSION MODELS TRAINING =====#
 
 def run_ols(target, X_train, X_test, y_train, y_test):
     """
@@ -307,7 +320,7 @@ def run_ridge(target, X_train, X_test, y_train, y_test):
     return summary, fig, rmse, mae
 
 
-def run_rf(target, X_train, X_test, y_train, y_test):
+def run_rfr(target, X_train, X_test, y_train, y_test):
     """
     Fit a random forest regression
 
@@ -347,7 +360,7 @@ def run_rf(target, X_train, X_test, y_train, y_test):
     return summary, fig, rmse, mae
 
 
-def run_xgb(target, X_train, X_test, y_train, y_test):
+def run_xgbr(target, X_train, X_test, y_train, y_test):
     """
     Fit an XGBoost regression 
 
@@ -416,4 +429,148 @@ def plot_metrics_xgb(booster):
 
 
 
+#===== Classification MODELS TRAINING =====#
 
+def run_logistic(X_train, X_test, y_train, y_test):
+    """
+    Fit a logistic regression classifier
+
+    Parameters:
+        features (list): name of explanatory variables
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        str: text summary of performance metrics
+        plotly.graph_objects.Figure: confusion matrix plot
+        float: F1 score
+        float: Accuracy score
+    """
+    
+    # Model training
+    model = LogisticRegression()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    # Summary
+    summary = classification_report(y_test, y_pred, output_dict=False)
+
+    # Metrics
+    nb_class = len(set(np.concatenate((y_test, y_train))))
+    if nb_class > 2:
+        average_method = "weighted"
+    else:
+        average_method = "binary"
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average=average_method)
+    rec = recall_score(y_test, y_pred, average=average_method)
+    f1 = f1_score(y_test, y_pred, average=average_method)
+
+    # Confusion matrix 
+    cm = confusion_matrix(y_test, y_pred)
+    class_labels = sorted(set(np.concatenate((y_train, y_test)))) 
+    disp = ConfusionMatrixDisplay(cm, display_labels=class_labels)
+    fig, ax = plt.subplots()
+    disp.plot(ax=ax)
+
+    return summary, fig, acc, prec, rec, f1
+
+
+
+def run_rfc(X_train, X_test, y_train, y_test):
+    """
+    Fit a random forest classifier
+
+    Parameters:
+        features (list): name of explanatory variables
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        str: text summary of performance metrics
+        plotly.graph_objects.Figure: confusion matrix plot
+        float: F1 score
+        float: Accuracy score
+    """
+    
+    # Model training
+    model = LogisticRegression()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    # Summary
+    summary = classification_report(y_test, y_pred, output_dict=False)
+
+    # Metrics
+    nb_class = len(set(np.concatenate((y_test, y_train))))
+    if nb_class > 2:
+        average_method = "weighted"
+    else:
+        average_method = "binary"
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average=average_method)
+    rec = recall_score(y_test, y_pred, average=average_method)
+    f1 = f1_score(y_test, y_pred, average=average_method)
+
+    # Confusion matrix 
+    cm = confusion_matrix(y_test, y_pred)
+    class_labels = sorted(set(np.concatenate((y_train, y_test)))) 
+    disp = ConfusionMatrixDisplay(cm, display_labels=class_labels)
+    fig, ax = plt.subplots()
+    disp.plot(ax=ax)
+
+    return summary, fig, acc, prec, rec, f1
+
+
+def run_xgbc(X_train, X_test, y_train, y_test):
+    """
+    Fit a XGBoost classifier
+
+    Parameters:
+        features (list): name of explanatory variables
+        X_train (np.array): training set for explanatory variables
+        X_test (np.array): test set for explanatory variables
+        y_train (np.array): training set for regressive variable
+        y_test (np.array): test set for regressive variable
+
+    Returns:
+        str: text summary of performance metrics
+        plotly.graph_objects.Figure: confusion matrix plot
+        float: F1 score
+        float: Accuracy score
+    """
+    
+    # Model training
+    model = xgb.XGBClassifier()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    # Summary
+    summary = classification_report(y_test, y_pred, output_dict=False)
+
+    # Metrics
+    nb_class = len(set(np.concatenate((y_test, y_train))))
+    if nb_class > 2:
+        average_method = "weighted"
+    else:
+        average_method = "binary"
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average=average_method)
+    rec = recall_score(y_test, y_pred, average=average_method)
+    f1 = f1_score(y_test, y_pred, average=average_method)
+
+    # Confusion matrix 
+    cm = confusion_matrix(y_test, y_pred)
+    class_labels = sorted(set(np.concatenate((y_train, y_test)))) 
+    disp = ConfusionMatrixDisplay(cm, display_labels=class_labels)
+    fig, ax = plt.subplots()
+    disp.plot(ax=ax)
+
+    booster = model.get_booster()
+    metrics_plots = plot_metrics_xgb(booster)
+
+    return summary, (fig, metrics_plots), acc, prec, rec, f1

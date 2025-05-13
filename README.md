@@ -1,7 +1,7 @@
 # 06009256-math70076-assessment-2
 
 ## WebApp data science - EDA & Machine learning models
-This Streamlit application allows users to load, explore, preprocess and model their own datasets using an intuitive and interactive interface. The tool is designed for quick experimentation and comparison of multiple regression models. It globally and aims to save time on the preliminary stages of a data study.
+This Streamlit application allows users to load, explore, preprocess and model their own datasets using an intuitive and interactive interface. It is designed for already skilled users to help them get a quick overview of their data set and gain relevant insight before carrying deeper analysis. 
 
 ## Project structure
 
@@ -12,75 +12,80 @@ This Streamlit application allows users to load, explore, preprocess and model t
 - `data/` : example datasets
 - `README.md` : this file
 - `requirements.txt` : dependencies
+- `.gitignore`
 
 ## Launch app
 
-1. Install dependancies:
-pip install -r requirements.txt
+1. Create and activate virtual environment:
+- $ python -m venv venv
+- $ source venv/bin/activate
 
-2. Run app
-streamlit run Main_page.py
+2. Install dependencies:
+$ pip install -r requirements.txt
 
-3. Load a dataset '.csv' on main page from 'data/' folder
+3. Run app
+$ streamlit run Main_page.py
+
+4. Load an example dataset '.csv' on main page from 'data/' folder
 
 
 ## Features
-<li> Upload and validate your own .csv dataset (numerical or categorical variables).
+- Upload and validate your own .csv dataset (numerical or categorical variables).
 
-<li> Automatic detection and warning for non-usable columns (e.g., free text).
+- Automatic detection and warning for non-usable columns (e.g., free text).
 
-<li> Visualizations:
-    • Descriptive statistics, dtypes and missing values 
-    • Heatmap of correlations
-    • Histograms of distribution and bar plots
-    • Scatter plot of 1 to 3 variables with possibility of color appearance parameter. 
+- Visualizations:
+    - Descriptive statistics, dtypes and missing values 
+    - Heatmap of correlations
+    - Histograms of distribution and bar plots
+    - Scatter plot of 1 to 3 variables with possibility of color appearance parameter. 
 
-<li> Preprocessing options: label encoding or one-hot encoding for categorical variables.
+- Preprocessing options: label encoding or one-hot encoding for categorical variables.
 
-<li> Interactive variable selection for target and features.
+- Interactive variable selection for target and features.
 
-<li> Training/test split control.
+- Training/test split control.
 
-<li> Train and compare multiple regression models including:
-    • OLS
-    • Lasso
-    • Ridge
-    • Random forest
-    • XGBoost.
+- Train and compare multiple regression models including:
+    - OLS
+    - Lasso
+    - Ridge
+    - Random forest
+    - XGBoost.
 
-<li> Model results caching and reseting. 
+- Model results caching and reseting. 
 
 
 ## Tech Stack
 Python:
 
-• Pandas
-• Numpy
+- Pandas
+- Numpy
 for computations and data management 
 
-• Matplotlib
-• Seaborn 
-• Plotly
+- Matplotlib
+- Seaborn 
+- Plotly
 for visualization 
 
-• Statsmodels
-• Scikit-learn 
-• XGBoost 
+- Statsmodels
+- Scikit-learn 
+- XGBoost 
 for machine learning
 
-• Streamlit
+- Streamlit
 for app designing 
 
-• Pytest
+- Pytest
 for function testing
 
-• Sys 
-• Os
+- Sys 
+- Os
 for file navigation. 
 
 ## Test source files
 
 1. Write in a terminal: 
-pytest tests/
+$ pytest tests/
 
 2. Interact with the app

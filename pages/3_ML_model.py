@@ -28,8 +28,10 @@ if df is None:
     st.stop()
 
 # Variable to save model results 
-if "model_results" not in st.session_state:
-    st.session_state["model_results"] = []
+if "regression_results" not in st.session_state:
+    st.session_state["regression_results"] = []
+if "classification_results" not in st.session_state:
+    st.session_state["classification_results"] = []
 
 
 # Possibility of one-hot and label encoding for categorical variables
@@ -65,8 +67,7 @@ if warning_cols_names:
 df_reg = df.copy()
 if to_label_cols or to_one_hot_cols:
     df_reg, mappings = ML.get_df_encoded(df_reg, to_label_cols, to_one_hot_cols)
-    st.subheader("Encoded dataset:")
-    st.write(df_reg.head(5))
+    st.write("Encoded dataset:", df_reg.head(2))
 if to_label_cols:
     st.write("Label encoding mapping:", mappings)
 
@@ -81,8 +82,11 @@ features = st.multiselect("Explanatory variables :", [
 
 # Select machine learning model and train/test ratio
 model_type = st.radio("Choose a model:", [
-    "OLS", "Lasso", "Ridge", "Random Forest", "XGBoost"
+    "OLS regression", "Lasso regression", "Ridge regression", "Random-Forest-r regression", "XGBoost-r regression", 
+    "Logistic classification", "Random-Forest-c classification", "XGBoost-c classification"
     ])
+model, type = model_type.split(' ')
+st.warning(f'You chose a {type} model, make sure the selected target variable is adapted.')
 split = st.slider("Percentage of training set size", 0.1, 0.95, 0.8)
 
 
@@ -91,32 +95,76 @@ if st.button("Launch training"):
 
     if features==[]: 
         st.warning("Please, select regressive variables")
-    else: 
-        res, fig, rmse, mae = ML.run_model(df_reg, target, features, model_type, split)
-        st.markdown("""### Training results:""")
-        st.write(res)
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.plotly_chart(fig)
-        
-        # Save regression results for comparison 
-        st.session_state["model_results"].append({
-            "Model": model_type,
-            "Target": target,
-            "RMSE": rmse,
-            "MAE": mae, 
-            "Train_split": split,
-            "Features": features
-        })
+
+    else:
+        if type=="regression": 
+            res, fig, rmse, mae = ML.run_model(df_reg, target, features, model, type, split)
+            st.markdown("""### Training results:""")
+            st.write(res)
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            st.plotly_chart(fig)
+            
+            # Save model results for comparison 
+            st.session_state["regression_results"].append({
+                "Model": model_type,
+                "Target": target,
+                "RMSE": rmse,
+                "MAE": mae, 
+                "Train_split": split,
+                "Features": features
+            })
+
+        else: 
+            res, fig, acc, prec, rec, f1 = ML.run_model(df_reg, target, features, model, type, split)
+            st.markdown(f"### {target} classification report:")
+            st.text(res)
+            if model=='XGBoost-c':
+                matrix, metrics = fig
+                st.markdown("### Confusion matrix:")
+                st.pyplot(matrix)
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                st.markdown("### Training results:")
+                st.pyplot(metrics)
+
+            else: 
+                st.markdown("### Confusion matrix:")
+                st.pyplot(fig)
+            
+            # Save model results for comparison 
+            st.session_state["classification_results"].append({
+                "Model": model_type,
+                "Target": target,
+                "Accuracy": acc,
+                "Precision": prec, 
+                "Recall": rec,
+                "F1-score": f1,
+                "Train_split": split,
+                "Features": features
+            })
 
 
 # Display model comparison 
-if st.session_state["model_results"]:
+if st.session_state["regression_results"]:
     st.markdown("<br><br>", unsafe_allow_html=True)
-    st.subheader("Model Comparison")
-    df_results = pd.DataFrame(st.session_state["model_results"])
+    st.subheader("Regression Comparison")
+    df_results = pd.DataFrame(st.session_state["regression_results"])
     st.write(df_results)
-    
+
     # Reset model results
-    if st.button("Reset model results"):
-        st.session_state["model_results"] = []
-        st.success("Model results have been reset")
+    if st.button("Reset regression results"):
+        st.session_state["regression_results"] = []
+        st.success("Regression models results have been reset")
+
+if st.session_state["classification_results"]:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.subheader("Classification Comparison")
+    df_results = pd.DataFrame(st.session_state["classification_results"])
+    st.write(df_results)
+
+    if st.button("Reset classification results"):
+        st.session_state["classification_results"] = []
+        st.success("Classification models results have been reset")
+
+
+    
+    

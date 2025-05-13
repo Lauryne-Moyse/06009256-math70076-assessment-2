@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import xgboost as xgb
 
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_regression
+from sklearn.datasets import make_regression, make_classification
 from plotly.graph_objects import Figure
 from statsmodels.iolib.summary import Summary
 
@@ -77,19 +77,20 @@ def test_plot_pred():
     assert rmse >= 0
 
 
-### TEST run_model ###
+### TESTS run_model ###
 
 def test_run_model():
     df = pd.DataFrame({
         'feature1': [1, 2, 3, 4, 5],
         'feature2': [5, 4, 3, 2, 1],
-        'target':    [2, 3, 4, 5, 6]
+        'target': [2, 3, 4, 5, 6]
     })
     target = 'target'
     features = ['feature1', 'feature2']
-    model_type = 'OLS'
+    model = 'OLS'
+    type = 'regression'
     split = 0.8
-    result = ML.run_model(df, target, features, model_type, split)
+    result = ML.run_model(df, target, features, model, type, split)
     assert isinstance(result, tuple)
     assert len(result) == 4
     summary, fig, rmse, mae = result
@@ -98,6 +99,31 @@ def test_run_model():
     assert isinstance(mae, float)
     assert rmse >= 0
     assert mae >= 0
+
+def test_run_model():
+    df = pd.DataFrame({
+        'feature1': [1, 2, 3, 4, 5],
+        'feature2': [5, 4, 3, 2, 1],
+        'target': [0, 1, 0, 1, 0]
+    })
+    target = 'target'
+    features = ['feature1', 'feature2']
+    model = 'Logistic'
+    type = 'classification'
+    split = 0.8
+    result = ML.run_model(df, target, features, model, type, split)
+    assert isinstance(result, tuple)
+    assert len(result) == 6
+    summary, fig, acc, prec, rec, f1 = result
+    assert isinstance(fig, plt.Figure)
+    assert isinstance(acc, float)
+    assert isinstance(prec, float)
+    assert isinstance(rec, float)
+    assert isinstance(f1, float)
+    assert acc >= 0
+    assert prec >= 0
+    assert rec >= 0
+    assert f1 >= 0
 
 
 ### TEST run_ols ###
@@ -166,9 +192,9 @@ def test_run_ridge():
     assert mae >= 0
 
 
-### TEST run_rf ###
+### TESTS run_rf ###
 
-def test_run_rf():
+def test_run_rfr():
     X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
@@ -177,7 +203,7 @@ def test_run_rf():
     X_train, X_test, y_train, y_test = train_test_split(
         df[features], df[target], test_size=0.2, random_state=1
     )
-    summary, fig, rmse, mae = ML.run_rf(
+    summary, fig, rmse, mae = ML.run_rfr(
         target, X_train, X_test, y_train, y_test
     )
     assert isinstance(summary, str)
@@ -187,10 +213,33 @@ def test_run_rf():
     assert rmse >= 0
     assert mae >= 0
 
+def test_run_rfc():
+    X, y = make_classification(n_classes=3, n_informative=3)
+    features = [f"feature_{i}" for i in range(X.shape[1])]
+    df = pd.DataFrame(X, columns=features)
+    target = "target"
+    df[target] = y
+    X_train, X_test, y_train, y_test = train_test_split(
+        df[features], df[target], test_size=0.2, random_state=1
+    )
+    summary, fig, acc, prec, rec, f1 = ML.run_rfc(
+        X_train, X_test, y_train, y_test
+    )
+    assert isinstance(summary, str)
+    assert isinstance(fig, plt.Figure)
+    assert isinstance(acc, float)
+    assert isinstance(prec, float)
+    assert isinstance(rec, float)
+    assert isinstance(f1, float)
+    assert acc >= 0
+    assert prec >= 0
+    assert rec >= 0
+    assert f1 >= 0
+
 
 ### TEST run_xgb ###
 
-def test_run_xgb():
+def test_run_xgbr():
     X, y = make_regression()
     features = [f"feature_{i}" for i in range(X.shape[1])]
     df = pd.DataFrame(X, columns=features)
@@ -199,7 +248,7 @@ def test_run_xgb():
     X_train, X_test, y_train, y_test = train_test_split(
         df[features], df[target], test_size=0.2, random_state=1
     )
-    metrics_plots, fig, rmse, mae = ML.run_xgb(
+    metrics_plots, fig, rmse, mae = ML.run_xgbr(
         target, X_train, X_test, y_train, y_test
     )
     assert isinstance(metrics_plots, plt.Figure)
@@ -208,6 +257,32 @@ def test_run_xgb():
     assert isinstance(mae, float)
     assert rmse >= 0
     assert mae >= 0
+
+def test_run_xgbc():
+    X, y = make_classification(n_classes=3, n_informative=3)
+    features = [f"feature_{i}" for i in range(X.shape[1])]
+    df = pd.DataFrame(X, columns=features)
+    target = "target"
+    df[target] = y
+    X_train, X_test, y_train, y_test = train_test_split(
+        df[features], df[target], test_size=0.2, random_state=1
+    )
+    summary, fig, acc, prec, rec, f1 = ML.run_xgbc(
+        X_train, X_test, y_train, y_test
+    )
+    assert len(fig) == 2
+    matrix, metrics_plots = fig
+    assert isinstance(summary, str)
+    assert isinstance(matrix, plt.Figure)
+    assert isinstance(metrics_plots, plt.Figure)
+    assert isinstance(acc, float)
+    assert isinstance(prec, float)
+    assert isinstance(rec, float)
+    assert isinstance(f1, float)
+    assert acc >= 0
+    assert prec >= 0
+    assert rec >= 0
+    assert f1 >= 0
 
 
 ### TEST plot_metrics_xgb ###
@@ -226,3 +301,28 @@ def test_plot_metrics_xgb():
     booster = model.get_booster()
     fig = ML.plot_metrics_xgb(booster)
     assert isinstance(fig, plt.Figure)
+
+
+### TEST run_logistic ###
+def test_run_logisitc():
+    X, y = make_classification(n_classes=3, n_informative=3)
+    features = [f"feature_{i}" for i in range(X.shape[1])]
+    df = pd.DataFrame(X, columns=features)
+    target = "target"
+    df[target] = y
+    X_train, X_test, y_train, y_test = train_test_split(
+        df[features], df[target], test_size=0.2, random_state=1
+    )
+    summary, fig, acc, prec, rec, f1 = ML.run_logistic(
+        X_train, X_test, y_train, y_test
+    )
+    assert isinstance(summary, str)
+    assert isinstance(fig, plt.Figure)
+    assert isinstance(acc, float)
+    assert isinstance(prec, float)
+    assert isinstance(rec, float)
+    assert isinstance(f1, float)
+    assert acc >= 0
+    assert prec >= 0
+    assert rec >= 0
+    assert f1 >= 0
